@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit-element';
 import '@material/mwc-button';
+import '@material/mwc-list/mwc-check-list-item.js';
 import '@material/mwc-list/mwc-list.js';
 import '@material/mwc-checkbox';
 import '@material/mwc-textfield';
@@ -29,7 +30,7 @@ class TodoListElement extends LitElement {
                 type: String,
             },
             todos: {
-                type: Map,
+                type: Array,
             },
             present: {
                 type: String,
@@ -43,7 +44,7 @@ class TodoListElement extends LitElement {
     constructor() {
         super();
         this.todo = '';
-        this.todos = new Map();
+        this.todos = [];
         this.present = '';
         this.presents = [];
         this.noTodoData = true;
@@ -51,20 +52,21 @@ class TodoListElement extends LitElement {
 
     addTodo() {
         const todo = this.shadowRoot.querySelector('#current-todo');
-        this.todos.set(todo, new Array());
+        this.todos = [...this.todos, todo.value];
+        // Esta función se ejecuta si el spread opereator no es suficiente
+        // como para que el cambio se refleje de forma atomática
+        // this.requestUpdate()
         todo.value = '';
     }
 
-    addPresent(param) {
-        const key = param;
+    addPresent() {
         const present = this.shadowRoot.querySelector('#current-present');
-        const listaRegalos = this.todos.get(key);
-        listaRegalos = [...this.listaRegalos, present.value];
-        this.todos.set(key, listaRegalos);
+        this.presents = [...this.presents, present.value];
         present.value = '';
+
     }
 
-    deletePresent(e) {
+    deleteTodo(e) {
         this.presents = this.presents.filter((present) => present !== e.target.id);
     }
 
@@ -89,7 +91,7 @@ class TodoListElement extends LitElement {
               ? html` <p>No hay participantes para este secret santa aún</p> `
               : html`
                   <mwc-list multi>
-                    ${this.todos.forEach(
+                    ${this.todos.map(
                       (todo) => html`
                       <mwc-list-item graphic="icon">
                         <slot>${todo}</slot>
@@ -106,24 +108,10 @@ class TodoListElement extends LitElement {
                         ></mwc-textfield>
                         <mwc-button
                           raised
-                          @click="${this.addPresent(todo)}"
+                          @click="${this.addPresent}"
                           label="Agregar2"
                           ?disabled="${this.presents === ''}"
                         ></mwc-button>
-                        ${this.presents.map(
-                          (present) => html`
-                            <mwc-check-list-item graphic="icon">
-                              <slot>${present}</slot>
-                              <mwc-icon
-                                id=${present}
-                                @click=${this.deletePresent}
-                                slot="graphic"
-                                >delete_forever</mwc-icon
-                              >
-                            </mwc-check-list-item>
-                            <li divider role="separator"></li>
-                          `
-                        )}
                       </mwc-list-item>
                         <li divider role="separator"></li>
                       `
@@ -134,4 +122,5 @@ class TodoListElement extends LitElement {
         `;
       }
 }
+
 customElements.define('todo-list-element', TodoListElement);
